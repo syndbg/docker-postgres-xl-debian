@@ -1,0 +1,65 @@
+FROM debian:stretch-backports
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG POSTGRES_XL_VERSION=postgres-xl-9.5r1.5
+
+ENV PG_HOME /var/lib/postgresql
+ENV PG_LIB /usr/local/lib/postgresql
+ENV PG_USER postgres
+
+# NOTE: Correctly set UTF-8 locale
+# since default debian images
+# come with no sane default UTF-8 locale.
+RUN apt -q update && \
+    apt install -y locales && \
+    localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+# NOTE: Create the `postgres` user's home.
+# Done in a separate layer as a build optimization.
+RUN useradd ${PG_USER} -d ${PG_HOME} && \
+    mkdir -p ${PG_LIB} ${PG_HOME} && \
+    chown -R ${PG_USER}:${PG_USER} ${PG_LIB} ${PG_HOME}
+
+# NOTE: Install Postgres and Postgres XL dependencies
+RUN apt -q update && \
+    apt install -y \
+        wget \
+        apt-utils \
+        build-essential \
+        libreadline-dev \
+        zlib1g-dev \
+        flex \
+        bison \
+        libxml2-dev \
+        libxslt-dev \
+        vim \
+        libssl-dev
+
+# NOTE: Install Postgres XL in tmp dir
+RUN export TMP_PG=$(mktemp -d) && \
+    chown ${PG_USER}:${PG_USER} $TMP_PG && \
+    su ${PG_USER} sh -c ' \
+      cd $TMP_PG && \
+      wget http://files.postgres-xl.org/$POSTGRES_XL_VERSION.tar.gz && \
+      tar -xf $POSTGRES_XL_VERSION.tar.gz && \
+      cd $POSTGRES_XL_VERSION && \
+      ./configure --prefix ${PG_LIB} --with-openssl && \
+      make -j4' && \
+    cd $TMP_PG/$POSTGRES_XL_VERSION && \
+    make install && \
+    cd contrib/pgxc_ctl && \
+    rm pgxc_ctl_bash.c || true && \
+    make install || true && \
+    make pgxc_ctl_bash.c && \
+    make install && \
+    rm -rf $TMP_PG
+
+USER ${PG_USER}
+
+ENV PATH ${PG_LIB}/bin:$PATH
+ENV PGDATA ${PG_HOME}/data
+
+WORKDIR ${PG_HOME}
