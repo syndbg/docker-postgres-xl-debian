@@ -1,0 +1,25 @@
+FROM syndbg/postgres-xl-base
+
+ENV PG_PROXY_HOST=0.0.0.0
+ENV PG_PROXY_PORT=6666
+ENV PG_GTM_PORT=6666
+ENV PG_PROXY_WORKER_THREADS=4
+ENV PG_PROXY_RETRY_INTERVAL=20
+
+COPY init/docker-entrypoint.sh /usr/local/bin
+COPY init/proxy.sh init.sh
+
+VOLUME ${PG_HOME}
+
+CMD gtm_proxy \
+    -D ${PGDATA} \
+    -h ${PG_PROXY_HOST} \
+    -p ${PG_PROXY_PORT} \
+    -i ${PG_PROXY_NODE} \
+    -c gtm_host=${PG_GTM_HOST} \
+    -c gtm_port=${PG_GTM_PORT} \
+    -c gtm_connect_retry_interval=${PG_PROXY_RETRY_INTERVAL} \
+    -c worker_threads=${PG_PROXY_WORKER_THREADS}
+    -l /dev/stdout
+
+EXPOSE ${PG_PROXY_PORT}
