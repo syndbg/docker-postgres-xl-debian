@@ -1,0 +1,18 @@
+FROM syndbg/postgres-xl-base
+
+COPY docker-entrypoint.sh /usr/local/bin
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+ENV PG_GTM_HOST=0.0.0.0
+ENV PG_GTM_PORT=6666
+
+COPY gtm-init.sh init.sh
+
+VOLUME ${PG_HOME}
+
+CMD gtm -D ${PGDATA} -h ${PG_GTM_HOST} -n ${PG_GTM_NODE} -p ${PG_GTM_PORT} -l /dev/stdout
+
+EXPOSE ${PG_GTM_PORT}
+
+HEALTHCHECK CMD curl -fs http://${PG_GTM_HOST}:${PG_GTM_PORT} || false

@@ -1,0 +1,20 @@
+FROM syndbg/postgres-xl-base
+
+COPY docker-entrypoint.sh /usr/local/bin
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+ENV PG_COORD_HOST=0.0.0.0
+ENV PG_COORD_PORT=5432
+ENV PG_GTM_PORT=6666
+ENV PG_USER_HEALTHCHECK=_healthcheck
+
+COPY coordinator-init.sh init.sh
+
+VOLUME ${PG_HOME}
+
+CMD postgres -D ${PGDATA} -h ${PG_COORD_HOST} -p ${PG_COORD_PORT} -c gtm_host=${PG_GTM_HOST} -c gtm_port=${PG_GTM_PORT} --coordinator
+
+EXPOSE ${PG_COORD_PORT}
+
+HEALTHCHECK CMD createuser ${PG_USER_HEALTHCHECK}; createdb ${PG_USER_HEALTHCHECK}; psql -h ${PG_COORD_HOST} -p ${PG_COORD_PORT} -U ${PG_USER_HEALTHCHECK} -c 'SELECT version()'; removedb ${PG_USER_HEALTHCHECK} || false
