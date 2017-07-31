@@ -40,26 +40,24 @@ RUN apt -q update && \
 
 # NOTE: Install Postgres XL in tmp dir
 RUN export TMP_PG=$(mktemp -d) && \
-    chown ${PG_USER}:${PG_USER} $TMP_PG && \
+    chown ${PG_USER}:${PG_USER} ${TMP_PG} && \
     su ${PG_USER} sh -c ' \
       cd $TMP_PG && \
-      wget http://files.postgres-xl.org/$POSTGRES_XL_VERSION.tar.gz && \
-      tar -xf $POSTGRES_XL_VERSION.tar.gz && \
-      cd $POSTGRES_XL_VERSION && \
+      wget http://files.postgres-xl.org/${POSTGRES_XL_VERSION}.tar.gz && \
+      tar -xf ${POSTGRES_XL_VERSION}.tar.gz && \
+      cd ${POSTGRES_XL_VERSION} && \
       ./configure --prefix ${PG_LIB} --with-openssl && \
       make -j4' && \
-    cd $TMP_PG/$POSTGRES_XL_VERSION && \
+    cd ${TMP_PG}/${POSTGRES_XL_VERSION} && \
     make install && \
     cd contrib/pgxc_ctl && \
     rm pgxc_ctl_bash.c || true && \
     make install || true && \
     make pgxc_ctl_bash.c && \
     make install && \
-    rm -rf $TMP_PG
+    rm -rf ${TMP_PG}
 
 USER ${PG_USER}
 
-ENV PATH ${PG_LIB}/bin:$PATH
+ENV PATH ${PG_LIB}/bin:${PATH}
 ENV PGDATA ${PG_HOME}/data
-
-WORKDIR ${PG_HOME}

@@ -4,7 +4,7 @@ services:
     environment:
       - PG_GTM_NODE=gtm_1
     build:
-      context: .
+      context: ../../
       dockerfile: Dockerfile.gtm
     volumes:
       - gtm_1:/var/lib/postgresql
@@ -15,7 +15,7 @@ services:
       - PG_COORD_NODE=coordinator_1
       - PG_GTM_HOST=gtm_1
     build:
-      context: .
+      context: ../../
       dockerfile: Dockerfile.coordinator
     volumes:
       - coordinator_1:/var/lib/postgresql
@@ -23,13 +23,12 @@ services:
       - gtm_1
     networks:
       - db_a
-      - db_b
   coordinator_2:
     environment:
       - PG_COORD_NODE=coordinator_2
       - PG_GTM_HOST=gtm_1
     build:
-      context: .
+      context: ../../
       dockerfile: Dockerfile.coordinator
     volumes:
       - coordinator_2:/var/lib/postgresql
@@ -37,13 +36,12 @@ services:
       - gtm_1
     networks:
       - db_a
-      - db_b
   data_1:
     environment:
       - PG_DATA_NODE=data_1
       - PG_GTM_HOST=gtm_1
     build:
-      context: .
+      context: ../../
       dockerfile: Dockerfile.datanode
     depends_on:
       - gtm_1
@@ -55,8 +53,9 @@ services:
     environment:
       - PG_DATA_NODE=data_2
       - PG_GTM_HOST=gtm_1
+      - DOCKER_NETWORK_OPT_1=172.30.0.0/16
     build:
-      context: .
+      context: ../../
       dockerfile: Dockerfile.datanode
     depends_on:
       - gtm_1
@@ -81,10 +80,4 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.19.0.0/16
-  db_b:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.18.0.0/16
+        - subnet: 172.30.0.0/16
