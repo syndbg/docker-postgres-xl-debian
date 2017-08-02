@@ -1,0 +1,100 @@
+version: '3'
+services:
+  gtm_1:
+    environment:
+      - PG_GTM_NODE=gtm_1
+    build:
+      context: ../../
+      dockerfile: Dockerfile.gtm
+    volumes:
+      - gtm_1:/var/lib/postgresql
+    networks:
+      - db_a
+  gtm_proxy_1:
+    environment:
+      - PG_GTM_NODE=gtm_1
+      - PG_PROXY_NODE=gtm_proxy_1
+    build:
+      context: ../../
+      dockerfile: Dockerfile.gtm
+    volumes:
+      - gtm_1:/var/lib/postgresql
+    networks:
+      - db_a
+  coordinator_1:
+    environment:
+      - PG_COORD_NODE=coordinator_1
+      - PG_GTM_HOST=gtm_proxy_1
+    build:
+      context: ../../
+      dockerfile: Dockerfile.coordinator
+    volumes:
+      - coordinator_1:/var/lib/postgresql
+    depends_on:
+      - gtm_1
+    networks:
+      - db_a
+  coordinator_2:
+    environment:
+      - PG_COORD_NODE=coordinator_2
+      - PG_GTM_HOST=gtm_proxy_1
+    build:
+      context: ../../
+      dockerfile: Dockerfile.coordinator
+    volumes:
+      - coordinator_2:/var/lib/postgresql
+    depends_on:
+      - gtm_1
+    networks:
+      - db_a
+  data_1:
+    environment:
+      - PG_DATA_NODE=data_1
+      - PG_GTM_HOST=gtm_proxy_1
+    build:
+      context: ../../
+      dockerfile: Dockerfile.datanode
+    depends_on:
+      - gtm_1
+    volumes:
+      - data_1:/var/lib/postgresql
+    networks:
+      - db_a
+  data_2:
+    environment:
+      - PG_DATA_NODE=data_2
+      - PG_GTM_HOST=gtm_proxy_1
+      - DOCKER_NETWORK_OPT_1=172.30.0.0/16
+    build:
+      context: ../../
+      dockerfile: Dockerfile.datanode
+    depends_on:
+      - gtm_1
+    volumes:
+      - data_2:/var/lib/postgresql
+    networks:
+      - db_a
+  haproxy:
+    build:
+      context: ../../
+      dockerfile: Dockerfile.haproxy
+    networks:
+      - db_a
+volumes:
+  gtm_1:
+    driver: local
+  coordinator_1:
+    driver: local
+  coordinator_2:
+    driver: local
+  data_1:
+    driver: local
+  data_2:
+    driver: local
+networks:
+  db_a:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.34.0.0/16
