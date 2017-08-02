@@ -19,7 +19,7 @@ CMD gtm_proxy \
     -c gtm_host=${PG_GTM_HOST} \
     -c gtm_port=${PG_GTM_PORT} \
     -c gtm_connect_retry_interval=${PG_PROXY_RETRY_INTERVAL} \
-    -c worker_threads=${PG_PROXY_WORKER_THREADS}
+    -c worker_threads=${PG_PROXY_WORKER_THREADS} \
     -l /dev/stdout
 
 EXPOSE ${PG_PROXY_PORT}
