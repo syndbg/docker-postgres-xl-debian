@@ -21,6 +21,17 @@ services:
       - gtm_1:/var/lib/postgresql
     networks:
       - db_a
+  gtm_standby_1:
+    environment:
+      - PG_STANDBY_NODE=gtm_1
+      - PG_GTM_HOST=gtm_1
+    build:
+      context: ../../
+      dockerfile: Dockerfile.standby
+    volumes:
+      - gtm_1:/var/lib/postgresql
+    networks:
+      - db_a
   coordinator_1:
     environment:
       - PG_COORD_NODE=coordinator_1
@@ -72,12 +83,6 @@ services:
       - gtm_1
     volumes:
       - data_2:/var/lib/postgresql
-    networks:
-      - db_a
-  haproxy:
-    build:
-      context: ../../
-      dockerfile: Dockerfile.haproxy
     networks:
       - db_a
 volumes:
