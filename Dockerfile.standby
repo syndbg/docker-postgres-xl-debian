@@ -7,11 +7,22 @@ ENV PG_STANDBY_PORT=6666
 COPY init/docker-entrypoint.sh /usr/local/bin
 COPY init/gtm.sh init.sh
 
-VOLUME ${PG_HOME}
-
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-CMD gtm -D ${PGDATA} -h ${PG_STANDBY_HOST} -n ${PG_STANDBY_NODE} -p ${PG_STANDBY_PORT} -l /dev/stdout -i ${PG_GTM_HOST} -q ${PG_GTM_PORT} -s
+# NOTE: Logging for really, really poor people.
+# This workarounds Docker's issue with `/dev/stdout` logging
+# not being possible without `root` user.
+CMD mkfifo -m 600 /tmp/logpipe && \
+    (cat <> /tmp/logpipe 1>&2 &) && \
+    gtm \
+    -D ${PGDATA} \
+    -h ${PG_STANDBY_HOST} \
+    -n ${PG_STANDBY_NODE} \
+    -p ${PG_STANDBY_PORT} \
+    -l /tmp/logpipe \
+    -i ${PG_GTM_HOST} \
+    -q ${PG_GTM_PORT} \
+    -s
 
 EXPOSE ${PG_GTM_PORT}
 

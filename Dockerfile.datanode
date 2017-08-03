@@ -8,8 +8,6 @@ ENV PG_USER_HEALTHCHECK=_healthcheck
 COPY init/docker-entrypoint.sh /usr/local/bin
 COPY init/data.sh init.sh
 
-VOLUME ${PG_HOME}
-
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 CMD postgres \
@@ -22,4 +20,8 @@ CMD postgres \
 
 EXPOSE ${PG_DATA_PORT}
 
-HEALTHCHECK CMD psql -h ${PG_DATA_HOST} -p ${PG_DATA_PORT} -U ${PG_USER_HEALTHCHECK} -c 'SELECT version()' || false
+HEALTHCHECK CMD psql \
+                  -h ${PG_DATA_HOST} \
+                  -p ${PG_DATA_PORT} \
+                  -U ${PG_USER_HEALTHCHECK} \
+                  -c 'SELECT version()' || false

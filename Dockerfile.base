@@ -1,3 +1,5 @@
+# NOTE: Loosely based on Docker's official Postgres 9.6 image
+# https://github.com/docker-library/postgres/blob/master/9.6/Dockerfile
 FROM debian:stretch-backports
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -19,9 +21,7 @@ ENV LC_ALL en_US.UTF-8
 
 # NOTE: Create the `postgres` user's home.
 # Done in a separate layer as a build optimization.
-RUN useradd ${PG_USER} -d ${PG_HOME} && \
-    mkdir -p ${PG_LIB} ${PG_HOME} && \
-    chown -R ${PG_USER}:${PG_USER} ${PG_LIB} ${PG_HOME}
+RUN groupadd -r postgres --gid=999 && useradd -r -g postgres --uid=999 postgres -d ${PG_HOME}
 
 # NOTE: Install Postgres and Postgres XL dependencies
 RUN apt -q update && \
@@ -37,6 +37,15 @@ RUN apt -q update && \
         libxslt-dev \
         vim \
         libssl-dev
+
+ENV GOSU_VERSION 1.10
+RUN apt update && \
+	apt install -y wget ca-certificates && \
+	dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" && \
+	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch" && \
+	chmod +x /usr/local/bin/gosu && \
+  # NOTE: Verify that the binary works
+	gosu nobody true
 
 # NOTE: Install Postgres XL in tmp dir
 RUN export TMP_PG=$(mktemp -d) && \
@@ -57,7 +66,10 @@ RUN export TMP_PG=$(mktemp -d) && \
     make install && \
     rm -rf ${TMP_PG}
 
-USER ${PG_USER}
-
 ENV PATH ${PG_LIB}/bin:${PATH}
 ENV PGDATA ${PG_HOME}/data
+
+VOLUME ${PGDATA}
+
+# NOTE: This 777 will be replaced by 700 at runtime (allows semi-arbitrary "--user" values)
+RUN mkdir -p "$PGDATA" && chown -R $PG_USER:$PG_USER "$PGDATA" && chmod 777 "$PGDATA"

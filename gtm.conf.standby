@@ -31,16 +31,16 @@ nodename = 'one'                                # Specifies the node name.
                                         # (changes requires restart)
 #listen_addresses = '*'                 # Listen addresses of this GTM.
                                         # (changes requires restart)
-port = 6666                           # Port number of this GTM.
+port = 6666                             # Port number of this GTM.
                                         # (changes requires restart)
 
-startup = STANDBY                               # Start mode. ACT/STANDBY.
+startup = STANDBY                       # Start mode. ACT/STANDBY.
 
 #------------------------------------------------------------------------------
 # GTM STANDBY PARAMETERS
 #------------------------------------------------------------------------------
 #Those parameters are effective when GTM is activated as a standby server
-active_host = 'gtm_1        '           # Listen address of active GTM.
+active_host = 'gtm_1'                   # Listen address of active GTM.
                                         # (changes requires restart)
 active_port = 666                       # Port number of active GTM.
                                         # (changes requires restart)

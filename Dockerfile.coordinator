@@ -8,8 +8,6 @@ ENV PG_USER_HEALTHCHECK=_healthcheck
 COPY init/docker-entrypoint.sh /usr/local/bin
 COPY init/coordinator.sh init.sh
 
-VOLUME ${PG_HOME}
-
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 CMD postgres \
@@ -22,4 +20,12 @@ CMD postgres \
 
 EXPOSE ${PG_COORD_PORT}
 
-HEALTHCHECK CMD createuser ${PG_USER_HEALTHCHECK}; createdb ${PG_USER_HEALTHCHECK}; psql -h ${PG_COORD_HOST} -p ${PG_COORD_PORT} -U ${PG_USER_HEALTHCHECK} -c 'SELECT version()'; removedb ${PG_USER_HEALTHCHECK}; removeuser ${PG_USER_HEALTHCHECK} || false
+HEALTHCHECK CMD createuser ${PG_USER_HEALTHCHECK}; \
+            createdb ${PG_USER_HEALTHCHECK}; \
+            psql \
+              -h ${PG_COORD_HOST} \
+              -p ${PG_COORD_PORT} \
+              -U ${PG_USER_HEALTHCHECK} \
+              -c 'SELECT version()'; \
+            removedb ${PG_USER_HEALTHCHECK}; \
+            removeuser ${PG_USER_HEALTHCHECK} || false
