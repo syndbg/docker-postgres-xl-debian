@@ -20,12 +20,12 @@ CMD postgres \
 
 EXPOSE ${PG_COORD_PORT}
 
-HEALTHCHECK CMD createuser ${PG_USER_HEALTHCHECK}; \
-            createdb ${PG_USER_HEALTHCHECK}; \
+HEALTHCHECK CMD createuser -U ${PG_USER} ${PG_USER_HEALTHCHECK}; \
+            createdb -U ${PG_USER} ${PG_USER_HEALTHCHECK}; \
             psql \
               -h ${PG_COORD_HOST} \
               -p ${PG_COORD_PORT} \
               -U ${PG_USER_HEALTHCHECK} \
               -c 'SELECT version()'; \
-            removedb ${PG_USER_HEALTHCHECK}; \
-            removeuser ${PG_USER_HEALTHCHECK} || false
+            removedb -U ${PG_USER} ${PG_USER_HEALTHCHECK}; \
+            removeuser -U ${PG_USER} ${PG_USER_HEALTHCHECK} || false
