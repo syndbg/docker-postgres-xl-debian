@@ -18,10 +18,10 @@ CMD mkfifo -m 600 /tmp/logpipe && \
     -h ${PG_PROXY_HOST} \
     -p ${PG_PROXY_PORT} \
     -i ${PG_PROXY_NODE} \
-    -c gtm_host=${PG_GTM_HOST} \
-    -c gtm_port=${PG_GTM_PORT} \
-    -c gtm_connect_retry_interval=${PG_PROXY_RETRY_INTERVAL} \
-    -c worker_threads=${PG_PROXY_WORKER_THREADS} \
+    -o gtm_host=${PG_GTM_HOST} \
+    -o gtm_port=${PG_GTM_PORT} \
+    -o gtm_connect_retry_interval=${PG_PROXY_RETRY_INTERVAL} \
+    -o worker_threads=${PG_PROXY_WORKER_THREADS} \
     -l /tmp/logpipe
 
 EXPOSE ${PG_PROXY_PORT}
